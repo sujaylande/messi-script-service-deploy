@@ -42,83 +42,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
-# def process_registration(data: RegisterStudent):
-#     try:
-#         embedding = capture_face()
-#         conn = get_db_connection()
-#         insert_student(conn, data.dict())
-#         insert_embedding(conn, data.reg_no, data.block_no, embedding)
-#         send_registration_event_toManager(data.dict())
-#         send_registration_event_toStudent(data.dict())
-#         send_registration_Status_toManager({
-#             "reg_no": data.reg_no,
-#             "status": "success"
-#         })
-#         conn.close()
-#     except Exception as e:
-#         # On failure
-#         send_registration_Status_toManager({
-#             "reg_no": data.reg_no,
-#             "status": "fail"
-#         })
-#         logger.error(f"Error in background registration task: {e}", exc_info=True)
-
-
-# @app.post("/register")
-# async def register_student(data: RegisterStudent, background_tasks: BackgroundTasks):
-#     try:
-#         # Queue the registration logic as a background task
-#         background_tasks.add_task(process_registration, data)
-#         return {"message": "Registration started"}
-#     except Exception as e:
-#         logger.error(f"Error during registration: {e}", exc_info=True)
-#         raise HTTPException(status_code=500, detail="Internal server error during registration")
-    
-
-# @app.get("/forecast/{block_no}")
-# def forecast_attendance(block_no: int):
-#     try:
-#         conn = get_db_connection()
-#         cursor = conn.cursor(dictionary=True)
-#         query = """
-#             SELECT date, meal_slot, COUNT(*) as count 
-#             FROM attendance 
-#             WHERE block_no = %s
-#             GROUP BY date, meal_slot
-#         """
-#         cursor.execute(query, (block_no,))
-#         rows = cursor.fetchall()
-#         conn.close()
-#         cursor.close()
-
-#         if not rows:
-#             return []
-
-#         df = pd.DataFrame(rows)
-#         df['date'] = pd.to_datetime(df['date'])
-#         df.set_index('date', inplace=True)
-
-#         pivot_df = df.pivot_table(index='date', columns='meal_slot', values='count', aggfunc='sum').fillna(0)
-#         pivot_df = pivot_df.asfreq('D', fill_value=0)
-
-#         forecast_data = {}
-#         for meal in pivot_df.columns:
-#             if pivot_df[meal].count() < 2:
-#                 forecast_data[meal] = []
-#                 continue
-
-#             try:
-#                 model = ExponentialSmoothing(pivot_df[meal], trend="add", seasonal=None).fit()
-#                 future_forecast = model.forecast(7)
-#                 forecast_data[meal] = future_forecast.tolist()
-#             except Exception as e:
-#                 forecast_data[meal] = []
-
-#         return forecast_data
-
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/forecast/{block_no}")
 def forecast_attendance(block_no: int, secret: str = Header(None)):
@@ -170,18 +93,6 @@ def forecast_attendance(block_no: int, secret: str = Header(None)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# @app.post("/attendance")
-# async def start_attendance(request: AttendanceRequest):
-#     try:
-#         print("Launching worker as module: app.attendance_worker")
-#         subprocess.Popen(["python", "-m", "app.attendance_worker", request.block_no])
-#         return {"message": f"Attendance process started for block: {request.block_no}"}
-#     except Exception as e:
-#         print("Subprocess error:", e)
-#         return {"error": str(e)}
-
-
-
 def fetch_feedback(block_no: str):
     try:
         conn = get_db_connection()
@@ -219,14 +130,6 @@ def analyze_feedback(feedback_data):
     negative_comments.sort(key=lambda x: x["score"])
     print("ne", negative_comments)
     return negative_comments
-
-# @app.get("/feedback/negative")
-# def get_negative_feedback(block_no: str = Query(...)):
-#     feedback_data = fetch_feedback(block_no)
-#     if isinstance(feedback_data, str):
-#         raise HTTPException(status_code=500, detail=feedback_data)
-
-#     return analyze_feedback(feedback_data)
 
 
 @app.get("/feedback/negative")

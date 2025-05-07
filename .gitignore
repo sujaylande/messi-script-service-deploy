@@ -3,3 +3,30 @@
 certs
 /certs
 *.pem
+
+__pycache__/
+/app/__pycache__/
+app/__pycache__
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual Environments
+.venv/
+venv/
+
+# Env files
+.env
+
+# IDE/editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
